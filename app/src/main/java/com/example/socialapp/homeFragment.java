@@ -16,7 +16,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -24,7 +23,6 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -105,7 +103,6 @@ public class homeFragment extends Fragment {
     class PostViewHolder extends RecyclerView.ViewHolder {
         ImageView authorPhotoImageView, likeImageView, mediaImageView;
         TextView authorTextView, contentTextView, numLikesTextView;
-        LinearLayout commentsContainer;
 
         PostViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -115,7 +112,6 @@ public class homeFragment extends Fragment {
             authorTextView = itemView.findViewById(R.id.authorTextView);
             contentTextView = itemView.findViewById(R.id.contentTextView);
             numLikesTextView = itemView.findViewById(R.id.numLikesTextView);
-            commentsContainer = itemView.findViewById(R.id.commentsContainer);
         }
     }
 
@@ -199,59 +195,6 @@ public class homeFragment extends Fragment {
             );
         } catch (AppwriteException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    void cargarComentarios(String postId, LinearLayout commentsContainer) {
-        Databases databases = new Databases(client);
-        Handler mainHandler = new Handler(Looper.getMainLooper());
-        try {
-            databases.listDocuments(
-                    getString(R.string.APPWRITE_DATABASE_ID),
-                    getString(R.string.APPWRITE_COMMENTS_COLLECTION_ID),
-                    List.of("equal(\"postId\", \"" + postId + "\")"),
-                    new CoroutineCallback<>((result, error) -> {
-                        if (error != null) {
-                            Snackbar.make(requireView(), "Error al cargar comentarios: " + error.toString(), Snackbar.LENGTH_LONG).show();
-                            return;
-                        }
-                        List<comment> comments = new ArrayList<>();
-                        for (Document<Map<String, Object>> doc : result.getDocuments()) {
-                            comments.add(new comment(
-                                    doc.getData().get("postId").toString(),
-                                    doc.getData().get("author").toString(),
-                                    doc.getData().get("content").toString(),
-                                    doc.getData().get("authorPhotoUrl").toString()
-                            ));
-                        }
-                        mainHandler.post(() -> mostrarComentarios(comments, commentsContainer));
-                    })
-            );
-        } catch (AppwriteException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    void mostrarComentarios(List<comment> comments, LinearLayout commentsContainer) {
-        commentsContainer.removeAllViews(); // Limpiar comentarios anteriores
-
-        for (comment comment : comments) {
-            View commentView = LayoutInflater.from(getContext()).inflate(R.layout.viewholder_comment, commentsContainer, false);
-
-            ImageView authorPhotoImageView = commentView.findViewById(R.id.authorPhotoImageView);
-            TextView authorTextView = commentView.findViewById(R.id.authorTextView);
-            TextView contentTextView = commentView.findViewById(R.id.contentTextView);
-
-            authorTextView.setText(comment.getAuthor());
-            contentTextView.setText(comment.getContent());
-
-            if (comment.getAuthorPhotoUrl() != null) {
-                Glide.with(requireView()).load(comment.getAuthorPhotoUrl()).circleCrop().into(authorPhotoImageView);
-            } else {
-                authorPhotoImageView.setImageResource(R.drawable.user);
-            }
-
-            commentsContainer.addView(commentView);
         }
     }
 }

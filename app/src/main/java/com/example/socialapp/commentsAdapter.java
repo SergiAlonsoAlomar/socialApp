@@ -5,9 +5,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
+
 import java.util.List;
 
 public class commentsAdapter extends RecyclerView.Adapter<commentsAdapter.CommentViewHolder> {
@@ -29,8 +32,12 @@ public class commentsAdapter extends RecyclerView.Adapter<commentsAdapter.Commen
         comment comment = comments.get(position);
         holder.authorTextView.setText(comment.getAuthor());
         holder.contentTextView.setText(comment.getContent());
+
         if (comment.getAuthorPhotoUrl() != null) {
-            Glide.with(holder.itemView.getContext()).load(comment.getAuthorPhotoUrl()).circleCrop().into(holder.authorPhotoImageView);
+            Glide.with(holder.itemView.getContext())
+                    .load(comment.getAuthorPhotoUrl())
+                    .circleCrop()
+                    .into(holder.authorPhotoImageView);
         } else {
             holder.authorPhotoImageView.setImageResource(R.drawable.user);
         }
@@ -39,6 +46,12 @@ public class commentsAdapter extends RecyclerView.Adapter<commentsAdapter.Commen
     @Override
     public int getItemCount() {
         return comments.size();
+    }
+
+    // Función para establecer la lista de comentarios
+    public void establecerLista(List<comment> nuevaLista) {
+        this.comments = nuevaLista;
+        notifyDataSetChanged(); // Notificar al adaptador que los datos han cambiado
     }
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
