@@ -23,6 +23,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -102,7 +103,7 @@ public class homeFragment extends Fragment {
 
     class PostViewHolder extends RecyclerView.ViewHolder {
         ImageView authorPhotoImageView, likeImageView, mediaImageView;
-        TextView authorTextView, contentTextView, numLikesTextView;
+        TextView authorTextView, contentTextView, numLikesTextView, viewCommentsTextView;
 
         PostViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -112,6 +113,7 @@ public class homeFragment extends Fragment {
             authorTextView = itemView.findViewById(R.id.authorTextView);
             contentTextView = itemView.findViewById(R.id.contentTextView);
             numLikesTextView = itemView.findViewById(R.id.numLikesTextView);
+            viewCommentsTextView = itemView.findViewById(R.id.viewCommentsTextView); // Agregar esta línea
         }
     }
 
@@ -146,6 +148,40 @@ public class homeFragment extends Fragment {
                 holder.likeImageView.setImageResource(R.drawable.like_off);
             holder.numLikesTextView.setText(String.valueOf(likes.size()));
 
+            // Manejar el clic en el botón de like
+            holder.likeImageView.setOnClickListener(view -> {
+                Databases databases = new Databases(client);
+                Handler mainHandler = new Handler(Looper.getMainLooper());
+                List<String> nuevosLikes = new ArrayList<>(likes); // Copiar la lista de likes
+                if (nuevosLikes.contains(userId))
+                    nuevosLikes.remove(userId); // Quitar el like si ya está
+                else
+                    nuevosLikes.add(userId); // Agregar el like si no está
+
+                // Actualizar los likes en la base de datos
+                Map<String, Object> data = new HashMap<>();
+                data.put("likes", nuevosLikes);
+                try {
+                    databases.updateDocument(
+                            getString(R.string.APPWRITE_DATABASE_ID),
+                            getString(R.string.APPWRITE_POSTS_COLLECTION_ID),
+                            post.get("$id").toString(), // documentId
+                            data, // data (optional)
+                            new ArrayList<>(), // permissions (optional)
+                            new CoroutineCallback<>((result, error) -> {
+                                if (error != null) {
+                                    error.printStackTrace();
+                                    return;
+                                }
+                                System.out.println("Likes actualizados: " + result.toString());
+                                mainHandler.post(() -> obtenerPosts()); // Refrescar los posts
+                            })
+                    );
+                } catch (AppwriteException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
             // Miniatura de media
             if (post.get("mediaUrl") != null) {
                 holder.mediaImageView.setVisibility(View.VISIBLE);
@@ -154,12 +190,16 @@ public class homeFragment extends Fragment {
                 } else {
                     Glide.with(requireView()).load(post.get("mediaUrl").toString()).centerCrop().into(holder.mediaImageView);
                 }
+                holder.mediaImageView.setOnClickListener(view -> {
+                    appViewModel.postSeleccionado.setValue(post);
+                    navController.navigate(R.id.mediaFragment);
+                });
             } else {
                 holder.mediaImageView.setVisibility(View.GONE);
             }
 
-            // Navegar a PostDetailFragment al hacer clic en el post
-            holder.itemView.setOnClickListener(view -> {
+            // Navegar a PostDetailFragment al hacer clic en "Ver comentarios"
+            holder.viewCommentsTextView.setOnClickListener(view -> {
                 appViewModel.postSeleccionado.setValue(post);
                 navController.navigate(R.id.postDetailFragment);
             });
