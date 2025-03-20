@@ -41,4 +41,14 @@
         android:name="com.example.socialapp.MediaFragment"
         android:label="fragment_media"
         tools:layout="@layout/fragment_media" />
+    <fragment
+        android:id="@+id/newCommentFragment"
+        android:name="com.example.socialapp.NewCommentFragment"
+        android:label="fragment_new_comment"
+        tools:layout="@layout/fragment_new_comment" />
+    <fragment
+        android:id="@+id/postDetailFragment"
+        android:name="com.example.socialapp.PostDetailFragment"
+        android:label="fragment_post_detail"
+        tools:layout="@layout/fragment_post_detail" />
 </navigation>

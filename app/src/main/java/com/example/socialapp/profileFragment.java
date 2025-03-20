@@ -40,8 +40,7 @@ public class profileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
         photoImageView = view.findViewById(R.id.photoImageView);
-        displayNameTextView =
-                view.findViewById(R.id.displayNameTextView);
+        displayNameTextView = view.findViewById(R.id.displayNameTextView);
         emailTextView = view.findViewById(R.id.emailTextView);
         Client client = new Client(requireContext()).setProject(getString(R.string.APPWRITE_PROJECT_ID)); // Your project ID
         Account account = new Account(client);
